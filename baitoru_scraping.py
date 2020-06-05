@@ -66,7 +66,7 @@ def scraping():
             check[index].append(total_job)
 
             bar = tqdm(total=total_page)
-
+            bar.set_description(occupation_list[i])
             df = acquisit(df, soup, occupation_list[i])
             bar.update(1)
 
@@ -125,20 +125,25 @@ def acquisit(df, soup, occupation):
             # 最初に書かれている給与だけ抜き出す
             pay = pay[:pay.find("円")]
             pay = re.sub("①|②|③|,", "", pay)
-
-            if pay == "":
-                pay_form = "完全出来高制"
-                pay_qty = np.nan
             
-            elif "万" in pay:
+            if "万" in pay:
                 pay = re.sub("万", "", pay)
                 pay_form = pay[:2]
                 pay_qty = int(float(pay[2:])*10000)
-                
-            else:
+
+            elif pay[1] == "給":
                 pay_form = pay[:2]
                 pay_qty = int(pay[2:])
-        except AttributeError:
+
+            elif pay == "":
+                pay_form = "完全出来高制"
+                pay_qty = np.nan
+
+            else: 
+                pay[:re.search("\d*$", pay).start()]
+                pay_qty = re.search("\d*$", pay).group()
+                
+        except (AttributeError, ValueError):
             pay_form = np.nan
             pay_qty = np.nan
 

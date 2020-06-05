@@ -80,8 +80,7 @@ def crawling():
             
 
             bar = tqdm(total=total_page)
-            description = citys[index] + "_" + occupation_list[i]
-            bar.set_description(description)
+            bar.set_description(occupation_list[i])
 
             # 職種ごとのファイルを保存するディレクトリ
             city_occupation_dir = city_dir + f"{occupation_url[i]}/"
