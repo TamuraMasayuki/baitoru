@@ -124,13 +124,20 @@ def acquisit(df, soup, occupation):
             pay = job.find("div", class_="pt03").find_all("dd")[1].find("em").text
             # 最初に書かれている給与だけ抜き出す
             pay = pay[:pay.find("円")]
+            pay = re.sub("①|②|③|,", "", pay)
+
             if pay == "":
                 pay_form = "完全出来高制"
                 pay_qty = np.nan
-            pay = re.sub("①|②|③|,", "", pay)
-            pay = re.sub("万", "0000", pay)
-            pay_form = pay[:2]
-            pay_qty = int(pay[2:])
+            
+            elif "万" in pay:
+                pay = re.sub("万", "", pay)
+                pay_form = pay[:2]
+                pay_qty = int(float(pay[2:])*10000)
+                
+            else:
+                pay_form = pay[:2]
+                pay_qty = int(pay[2:])
         except AttributeError:
             pay_form = np.nan
             pay_qty = np.nan
