@@ -50,13 +50,18 @@ def scraping():
             # 1つ目を取り出し、総アルバイト数と総ページ数を取得する
             with open(f"./crawled_file/{city_name}/{occupation_url[i]}/{city_name}_{occupation_url[i]}_1.html") as f:
                 soup = BeautifulSoup(f, "lxml")
-            total_job = soup.find(id="js-job-count").text    #総アルバイト数
-            total_page = soup.find("li", class_="last").text    #総ページ数
-
+            
             # 総アルバイト数と総ページ数は文字列なので整数型に変換する
             # 数字にはコンマ(,)が入っていることがあるので正規表現を使い削除する
+            total_job = soup.find(id="js-job-count").text    #総アルバイト数
             total_job = int(re.sub("\\D", "", total_job))
-            total_page = int(re.sub("\\D", "", total_page))
+
+            # ページ数が5ページ以下だとエラーとなるため、総アルバイト数から総ページ数を算出する
+            try:
+                total_page = soup.find("li", class_="last").text    #総ページ数
+                total_page = int(re.sub("\\D", "", total_page))
+            except AttributeError:
+                total_page = total_job // 20 + 1
 
             check[index].append(total_job)
 
