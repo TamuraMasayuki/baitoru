@@ -64,11 +64,20 @@ def crawling():
             # 一旦1ページ目を取得し、総ページ数を取得する
             r = requests.get(base_url_o)
             soup = BeautifulSoup(r.content, "lxml")
-            total_page = soup.find("li", class_="last").text    #総ページ数
 
             # 総ページ数は文字列なので整数型に変換する
             # 数字にはコンマ(,)が入っていることがあるので正規表現を使い削除する
-            total_page = int(re.sub("\\D", "", total_page))
+            total_job = soup.find(id="js-job-count").text    #総アルバイト数
+            total_job = int(re.sub("\\D", "", total_job))
+
+            # ページ数が5ページ以下だとエラーとなるため、総アルバイト数から総ページ数を算出する
+            try:
+                total_page = soup.find("li", class_="last").text    #総ページ数
+                total_page = int(re.sub("\\D", "", total_page))
+            except AttributeError:
+                total_page = total_job // 20 + 1
+            
+            
 
             bar = tqdm(total=total_page)
             description = citys[index] + "_" + occupation_list[i]
