@@ -65,7 +65,7 @@ def scraping():
 
             check[index].append(total_job)
 
-            print(f"{occupation_list[i]}\n")
+            print(f"{occupation_list[i]}")
 
             bar = tqdm(total=total_page)
 
@@ -142,7 +142,7 @@ def acquisit(df, soup, occupation):
                 pay_qty = np.nan
 
             else: 
-                pay[:re.search("\d*$", pay).start()]
+                pay_form = pay[:re.search("\d*$", pay).start()]
                 pay_qty = re.search("\d*$", pay).group()
                 
         except (AttributeError, ValueError):

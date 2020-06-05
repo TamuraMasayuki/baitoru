@@ -70,6 +70,10 @@ def crawling():
             total_job = soup.find(id="js-job-count").text    #総アルバイト数
             total_job = int(re.sub("\\D", "", total_job))
 
+            # バイトが掲載されていない場合は処理をやめる
+            if total_job == 0:
+                break
+
             # ページ数が5ページ以下だとエラーとなるため、総アルバイト数から総ページ数を算出する
             try:
                 total_page = soup.find("li", class_="last").text    #総ページ数
