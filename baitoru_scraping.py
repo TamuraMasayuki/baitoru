@@ -80,11 +80,10 @@ def scraping():
                 bar.update(1)
 
 
-        #check[index].append(len(df))
+        check[index].append(len(df))
 
-            # csvファイルに保存する
-            df.to_csv(f'{result_dir}{city_name}.csv', index=False)
-        print(citys[index], "完了\n")
+        # csvファイルに保存する
+        df.to_csv(f'{result_dir}{city_name}.csv', index=False)
 
     print("検収確認（取得アルバイト数/元データ）")
     print("＿＿＿＿＿＿＿＿＿＿")
