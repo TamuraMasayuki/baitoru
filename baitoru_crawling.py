@@ -77,10 +77,9 @@ def crawling():
             except AttributeError:
                 total_page = total_job // 20 + 1
             
-            
+            print(f"{occupation_list[i]}\n")
 
             bar = tqdm(total=total_page)
-            bar.set_description(occupation_list[i])
 
             # 職種ごとのファイルを保存するディレクトリ
             city_occupation_dir = city_dir + f"{occupation_url[i]}/"

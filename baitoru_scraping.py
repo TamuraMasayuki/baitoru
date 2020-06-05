@@ -65,8 +65,10 @@ def scraping():
 
             check[index].append(total_job)
 
+            print(f"{occupation_list[i]}\n")
+
             bar = tqdm(total=total_page)
-            bar.set_description(occupation_list[i])
+
             df = acquisit(df, soup, occupation_list[i])
             bar.update(1)
 
