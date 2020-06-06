@@ -4,7 +4,6 @@ import re
 import os
 import shutil
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 def scraping():
 
@@ -22,8 +21,6 @@ def scraping():
                       'business', 'office', 'creative', 'education', 'medicalcare', 'beauty', 
                       'investigation', 'professional', 'nightwork']
 
-    # 検収確認
-    check = [[], [], [], [], []]
 
     # csvファイルを保存するディレクトリを作る
     # もしすでに存在していたら消去する
@@ -48,8 +45,12 @@ def scraping():
         for i in range(len(occupation_list)):
 
             # 1つ目を取り出し、総アルバイト数と総ページ数を取得する
-            with open(f"./crawled_file/{city_name}/{occupation_url[i]}/{city_name}_{occupation_url[i]}_1.html") as f:
-                soup = BeautifulSoup(f, "lxml")
+            # ディレクトリが存在しなければ次の職種に移す
+            try:
+                with open(f"./crawled_file/{city_name}/{occupation_url[i]}/{city_name}_{occupation_url[i]}_1.html") as f:
+                    soup = BeautifulSoup(f, "lxml")
+            except FileNotFoundError:
+                break
             
             # 総アルバイト数と総ページ数は文字列なので整数型に変換する
             # 数字にはコンマ(,)が入っていることがあるので正規表現を使い削除する
@@ -63,40 +64,29 @@ def scraping():
             except AttributeError:
                 total_page = total_job // 20 + 1
 
-            check[index].append(total_job)
-
-            print(f"{occupation_list[i]}")
-
-            bar = tqdm(total=total_page)
-
-            df = acquisit(df, soup, occupation_list[i])
-            bar.update(1)
+            # lastはそれぞれの職業の最後のファイルかどうかを判定する変数
+            df, last = acquisit(df, soup, occupation_list[i])
 
             # 残りのページも取得する
-            for j in range(2, total_page+1): #全ページ
+            j = 2
+            while last == False:
                 baitoru_file = open(f"./crawled_file/{city_name}/{occupation_url[i]}/{city_name}_{occupation_url[i]}_{j}.html", "r")
                 baitoru = baitoru_file.read()
                 baitoru_file.close()
                 soup = BeautifulSoup(baitoru, 'lxml')
-                df = acquisit(df, soup, occupation_list[i])
-                bar.update(1)
-
-
-        check[index].append(len(df))
+                df, last = acquisit(df, soup, occupation_list[i])
+                j += 1
 
         # csvファイルに保存する
         df.to_csv(f'{result_dir}{city_name}.csv', index=False)
-
-    print("検収確認（取得アルバイト数/元データ）")
-    print("＿＿＿＿＿＿＿＿＿＿")
-    for i in range(5):
-        print("{}：{}/{}".format(citys[i], check[i][1], check[i][0]))
-
 
 
 # 変数を取得し、引数のDataFrameに追加する関数
 # データが存在しない場合はtry構文でnanを与える
 def acquisit(df, soup, occupation):
+
+    # 最後のファイルかどうかを判定する
+    df_length = len(df)
 
     #各求人をページ毎にリストに保存
     job_list = soup.find_all("article", class_="list-jobListDetail")
@@ -231,7 +221,11 @@ def acquisit(df, soup, occupation):
         # 統合する
         df = pd.concat([df, df_temp])
 
-    return df
+    last = False
+    if len(df) - df_length != 20:
+        last = True
+
+    return df, last
 
 
 # 男女割合、仕事の仕方、職場の様子の評価値を算出する

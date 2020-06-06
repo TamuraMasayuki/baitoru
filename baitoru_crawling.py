@@ -81,7 +81,7 @@ def crawling():
             except AttributeError:
                 total_page = total_job // 20 + 1
             
-            print(f"{occupation_list[i]}\n")
+            print(f"{occupation_list[i]}")
 
             bar = tqdm(total=total_page)
 
@@ -98,10 +98,11 @@ def crawling():
             for j in range(2, total_page+1):
                 url = base_url_o + "page" + str(j)
                 r = requests.get(url)
-                time.sleep(1)    #クローリング間隔は1秒とする
 
                 with open(f'{city_occupation_dir}{city_name}_{occupation_url[i]}_{j}.html', 'w') as f:
                     f.write(r.text)
+
+                time.sleep(1)    #クローリング間隔は1秒とする
 
                 bar.update(1)
 
