@@ -1,5 +1,6 @@
 import requests
 import time
+from pathlib import Path
 from bs4 import BeautifulSoup
 import re
 import os
@@ -37,9 +38,14 @@ def crawling():
             r'https://www.baitoru.com/kanto/jlist/saitama/saitamashi/',
             r'https://www.baitoru.com/tokai/jlist/aichi/nagoyashi/']
 
+
+    # ディレクトリ
+    
+
     # ファイルを保存するディレクトリを作る
     # もしすでに存在していたら消去する
-    crawled_dir = "./crawled_file/"
+    current_dir = Path.cwd()
+    crawled_dir = current_dir / 'crawled_file'
     if os.path.exists(crawled_dir):
         shutil.rmtree(crawled_dir)
     os.mkdir(crawled_dir)
@@ -51,7 +57,7 @@ def crawling():
 
         # 都市ごとのファイルを保存するディレクトリ
         city_name = citys_eng[index]
-        city_dir = crawled_dir + f"{city_name}/"
+        city_dir = crawled_dir / city_name
 
         os.mkdir(city_dir)
 
@@ -75,10 +81,11 @@ def crawling():
                 break
 
             # ページ数が5ページ以下だとエラーとなるため、総アルバイト数から総ページ数を算出する
-            try:
-                total_page = soup.find("li", class_="last").text    #総ページ数
+            total_page = soup.find("li", class_="last")
+            if total_page != None:
+                total_page = total_page.text    #総ページ数
                 total_page = int(re.sub("\\D", "", total_page))
-            except AttributeError:
+            else:
                 total_page = total_job // 20 + 1
             
             print(f"{occupation_list[i]}")
@@ -86,10 +93,11 @@ def crawling():
             bar = tqdm(total=total_page)
 
             # 職種ごとのファイルを保存するディレクトリ
-            city_occupation_dir = city_dir + f"{occupation_url[i]}/"
+            city_occupation_dir = city_dir / occupation_url[i]
             os.mkdir(city_occupation_dir)
 
-            with open(f'{city_occupation_dir}{city_name}_{occupation_url[i]}_1.html', 'w') as f:
+            path_html = city_occupation_dir / f'{city_name}_{occupation_url[i]}_1.html'
+            with path_html.open(mode='w') as f:
                 f.write(r.text)
 
             bar.update(1)
@@ -99,7 +107,8 @@ def crawling():
                 url = base_url_o + "page" + str(j)
                 r = requests.get(url)
 
-                with open(f'{city_occupation_dir}{city_name}_{occupation_url[i]}_{j}.html', 'w') as f:
+                path_html = city_occupation_dir / f'{city_name}_{occupation_url[i]}_{j}.html'
+                with path_html.open(mode='w') as f:
                     f.write(r.text)
 
                 time.sleep(1)    #クローリング間隔は1秒とする
