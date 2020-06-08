@@ -34,7 +34,7 @@ def scraping():
     os.mkdir(result_dir)
 
     # htmlファイルを格納したディレクトリ
-    crawled_dir = current_dir / 'crawled_file_0'
+    crawled_dir = current_dir / 'crawled_file'
 
     # 検収確認用の変数
     check = [[0, 0] for i in range(len(citys))]
