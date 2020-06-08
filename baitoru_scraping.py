@@ -261,7 +261,7 @@ def acquisit(df, soup, occupation):
                                 '週払い': ch_value[1], '高収入': ch_value[2], '学生': ch_value[3], '高校生': ch_value[4], 
                                 'ミドル': ch_value[5], '主婦(夫)': ch_value[6], '未経験OK': ch_value[7], '交通費有': ch_value[8], 
                                 '年齢(10代)': age_10, '年齢(20代)': age_20, '年齢(30代)': age_30, '年齢(40代)': age_40, 
-                                '年齢(50代)': age_50, '男女割合': sex_ratio, '仕事の仕方': manner, '職場の様子': atmos, 'ハローワーク': False},
+                                '年齢(50代)': age_50, '男女割合': sex_ratio, '仕事の仕方': manner, '職場の様子': atmos},
                                 index=[0])
 
         # 統合する
@@ -275,13 +275,17 @@ def acquisit(df, soup, occupation):
     return df, hw_judge
 
 """======================================
-# なぜかjob_listが空となるのでハローワークの掲載は無視する
+
+
+# なぜかjob_listが空となり、データを取得できなかったためハローワークの掲載は無視する
+
+
 
 # ハローワーク求人の変数を取得し、引数のDataFrameに追加する関数
 # データが存在しない場合はでnanを与える
 def acquisit_hw(df, soup, occupation):
 
-    #各求人をページ毎にリストに保存
+    # 各求人をページ毎にリストに保存
     job_list = soup.find_all("article", class_="list-jobListDetailH")
 
     for job in job_list: #ページ内の求人ごとに
