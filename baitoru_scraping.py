@@ -35,8 +35,10 @@ def scraping():
     # htmlファイルを格納したディレクトリ
     crawled_dir = current_dir / 'crawled_file_0'
 
-    # 検収確認用の配列
+    # 検収確認用の変数
     check = [[0, 0] for i in range(len(citys))]
+    check_error = False
+    check_error_position = []
 
     column_name = ['企業名', '最寄り駅', '職種', '給与形態', '給与金額', '勤務開始時間', '勤務終了時間', 
                    '日払い', '週払い', '高収入', '学生', '高校生', 'ミドル', '主婦(夫)', '未経験OK', 
@@ -69,16 +71,19 @@ def scraping():
             html_path = city_occupation_crawled_dir / f'{city_name}_{occupation_name_en}_1.html'
             html_path = Path(html_path)
 
-            # ファイルが存在しなければその職業にはアルバイトがないということなので次の職種に移す
-            if html_path == []:
-                break
-
             occupation_name_ja = occupation_list[i]
+
+            # ファイルが存在しなければその職業にはアルバイトがないということなので次の職種に移す
+            try:
+                with html_path.open() as f:
+                    soup = BeautifulSoup(f, "lxml")
+            except FileNotFoundError:
+                print(f'{occupation_name_ja}はありませんでした')
+                break
             
             print(occupation_name_ja)
 
-            with html_path.open() as f:
-                soup = BeautifulSoup(f, "lxml")
+
  
             # 総アルバイト数と総ページ数は文字列なので整数型に変換する
             # 数字にはコンマ(,)が入っていることがあるので正規表現を使い削除する
@@ -105,10 +110,18 @@ def scraping():
                 if hw_judge == False:
                     df, hw_judge = acquisit(df, soup, occupation_name_ja)
                 else:
-                    check[index][0] = j * 20
+                    check[index][0] = (j-1)*20
                     break
+            
+            job_qty = len(df)
+            check[index][1] += job_qty
+            difference = check[index][0] - job_qty
 
-            check[index][1] += len(df)
+
+            # 1ページ当たり20のアルバイトが掲載されているのでページ数*20と20以上の差があるとおかしい
+            if (difference < 0) or (difference >= 20):
+                check_error = True
+                check_error_position.append(f'{citys[index]}{occupation_name_ja}')
 
             # メモリを節約するため、職業ごとにcsvファイルに保存する
             # 最初だけヘッダーも書き込む
@@ -119,10 +132,19 @@ def scraping():
 
         print(f"{citys[index]}をcsvファイルに保存しました\n")
 
-    print("検収確認（取得アルバイト数 ≒ ファイル数×20）")
+    print("検収確認（取得アルバイト数/最大アルバイト数）")
     print("＿＿＿＿＿＿＿＿＿＿＿＿")
     for i in range(len(check)):
         print("{}：{}/{}".format(citys[i], check[i][1], check[i][0]))
+
+    if check_error:
+        print('検収条件を満たしませんでした')
+        print('以下で数が合っていません')
+        for position in check_error_position:
+            print(position)
+
+    else:
+        print('異常はありませんでした')
 
 
 
