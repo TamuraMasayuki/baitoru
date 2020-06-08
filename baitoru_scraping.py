@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import os
 import shutil
+from tqdm import tqdm
 from bs4 import BeautifulSoup
 
 def scraping():
@@ -80,9 +81,6 @@ def scraping():
             except FileNotFoundError:
                 print(f'{occupation_name_ja}はありませんでした')
                 break
-            
-            print(occupation_name_ja)
-
 
  
             # 総アルバイト数と総ページ数は文字列なので整数型に変換する
@@ -98,7 +96,12 @@ def scraping():
             else:
                 total_page = total_job // 20 + 1
 
+            bar = tqdm(total=total_page)
+            bar.set_description(occupation_name_ja)
+
             df, hw_judge = acquisit(df, soup, occupation_name_ja)
+
+            bar.update(1)
 
             # 残りのページも取得する
             for j in range(2, total_page+1):
@@ -107,6 +110,7 @@ def scraping():
                 baitoru = f.read()
                 f.close()
                 soup = BeautifulSoup(baitoru, 'lxml')
+                bar.update(1)
                 if hw_judge == False:
                     df, hw_judge = acquisit(df, soup, occupation_name_ja)
                 else:
