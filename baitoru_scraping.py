@@ -40,7 +40,7 @@ def scraping():
         # スクレイピングをする都市名
         city_name = citys_eng[index]
 
-        print(f"\n{citys[index]}をスクレイピング中\n")
+        print(f"{citys[index]}をスクレイピング中")
 
         for i in range(len(occupation_list)):
 
@@ -79,6 +79,7 @@ def scraping():
 
         # csvファイルに保存する
         df.to_csv(f'{result_dir}{city_name}.csv', index=False)
+        print(f"{citys[index]}をcsvファイルに保存しました\n")
 
 
 # 変数を取得し、引数のDataFrameに追加する関数
