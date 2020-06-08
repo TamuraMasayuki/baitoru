@@ -115,7 +115,7 @@ def scraping():
             if i == 0:
                 df.to_csv(path_csv, index=False)
             else:
-                df.to_csv(path_csv, index=False, header=False)
+                df.to_csv(path_csv, mode='a', index=False, header=False)
 
         print(f"{citys[index]}をcsvファイルに保存しました\n")
 
