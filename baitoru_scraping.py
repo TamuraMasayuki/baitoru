@@ -176,7 +176,11 @@ def acquisit(df, soup, occupation):
         station = job.find_all(class_="ul02")[1].find("span")
         if station != None:
             station = station.text
-            station = re.search(r'.*駅', station).group()
+            station = re.search(r'.*駅', station)
+            if station != None:
+                station = station.group()
+            else:
+                station = np.nan
         else:
             station = np.nan
 
@@ -204,7 +208,11 @@ def acquisit(df, soup, occupation):
 
             else:
                 pay_form = pay[:re.search("\d*$", pay).start()]
-                pay_qty = re.search("\d*$", pay).group()
+                pay_qty = re.search("\d*$", pay)
+                if pay_qty != None:
+                    pay_qty = pay_qty.group()
+                else:
+                    pay_qty = np.nan
                 
         else:
             pay_form = np.nan
