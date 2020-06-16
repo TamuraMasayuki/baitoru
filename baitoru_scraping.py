@@ -37,11 +37,9 @@ def scraping():
     crawled_dir = current_dir / 'crawled_file'
 
     # 検収確認用の変数
-    check = [[0, 0] for i in range(len(citys))]
-    check_error = False
-    check_error_position = []
+    check = [[] for i in range(len(citys))]
 
-    column_name = ['企業名', '最寄り駅', '職種', '給与形態', '給与金額', '勤務開始時間', '勤務終了時間', 
+    column_name = ['企業名', 'タイトル', '最寄り駅', '職種', '給与形態', '給与金額', '勤務開始時間', '勤務終了時間', 
                    '日払い', '週払い', '高収入', '学生', '高校生', 'ミドル', '主婦(夫)', '未経験OK', 
                    '交通費有', '年齢(10代)', '年齢(20代)', '年齢(30代)', '年齢(40代)', '年齢(50代)', 
                    '男女割合', '仕事の仕方', '職場の様子', 'ハローワーク']
@@ -114,18 +112,10 @@ def scraping():
                 if hw_judge == False:
                     df, hw_judge = acquisit(df, soup, occupation_name_ja)
                 else:
-                    check[index][0] = (j-1)*20
-                    break
-            
-            job_qty = len(df)
-            check[index][1] += job_qty
-            difference = check[index][0] - job_qty
+                    df = acquisit_hw(df, soup, occupation_name_ja)
 
+            check[index].append([citys[index], occupation_name_ja, len(df), total_job])
 
-            # 1ページ当たり20のアルバイトが掲載されているのでページ数*20と20以上の差があるとおかしい
-            if (difference < 0) or (difference >= 20):
-                check_error = True
-                check_error_position.append(f'{citys[index]}{occupation_name_ja}')
 
             # メモリを節約するため、職業ごとにcsvファイルに保存する
             # 最初だけヘッダーも書き込む
@@ -136,19 +126,11 @@ def scraping():
 
         print(f"{citys[index]}をcsvファイルに保存しました\n")
 
-    print("検収確認（取得アルバイト数/最大アルバイト数）")
+    print("検収確認（取得アルバイト数/掲載アルバイト数）")
     print("＿＿＿＿＿＿＿＿＿＿＿＿")
     for i in range(len(check)):
-        print("{}：{}/{}".format(citys[i], check[i][1], check[i][0]))
-
-    if check_error:
-        print('検収条件を満たしませんでした')
-        print('以下で数が合っていません')
-        for position in check_error_position:
-            print(position)
-
-    else:
-        print('異常はありませんでした')
+        for j in range(len(check[i])):
+            print("{}{}：{}/{}".format(citys[i][j][0], citys[i][j][1], check[i][j][2], check[i][j][3]))
 
 
 
@@ -171,6 +153,13 @@ def acquisit(df, soup, occupation):
             corp = re.sub("/.*", "", corp)
         else:
             corp = np.nan
+
+        # タイトル
+        title = job.find_all('h3')[0].find('span')
+        if title != None:
+            title = title.text
+        else:
+            title = np.nan
 
         # 最寄り駅
         station = job.find_all(class_="ul02")[1].find("span")
@@ -290,12 +279,12 @@ def acquisit(df, soup, occupation):
 
 
         # 仮のデータフレームにまとめる
-        df_temp = pd.DataFrame({'企業名': corp, '最寄り駅': station, '職種': occupation, '給与形態': pay_form, 
+        df_temp = pd.DataFrame({'企業名': corp, 'タイトル': title, '最寄り駅': station, '職種': occupation, '給与形態': pay_form, 
                                 '給与金額': pay_qty, '勤務開始時間': start_time, '勤務終了時間': end_time, '日払い': ch_value[0], 
                                 '週払い': ch_value[1], '高収入': ch_value[2], '学生': ch_value[3], '高校生': ch_value[4], 
                                 'ミドル': ch_value[5], '主婦(夫)': ch_value[6], '未経験OK': ch_value[7], '交通費有': ch_value[8], 
                                 '年齢(10代)': age_10, '年齢(20代)': age_20, '年齢(30代)': age_30, '年齢(40代)': age_40, 
-                                '年齢(50代)': age_50, '男女割合': sex_ratio, '仕事の仕方': manner, '職場の様子': atmos},
+                                '年齢(50代)': age_50, '男女割合': sex_ratio, '仕事の仕方': manner, '職場の様子': atmos, 'ハローワーク': False},
                                 index=[0])
 
         # 統合する
@@ -305,13 +294,9 @@ def acquisit(df, soup, occupation):
     hw_judge = False
     if len(job_list) != 20:
         hw_judge = True
+        df = acquisit_hw(df, soup, occupation)
 
     return df, hw_judge
-
-"""======================================
-
-
-# なぜかjob_listが空となり、データを取得できなかったためハローワークの掲載は無視する
 
 
 
@@ -332,16 +317,29 @@ def acquisit_hw(df, soup, occupation):
         else:
             corp = np.nan
 
+        # タイトル
+        title = job.find_all('h3')[0].find('span')
+        if title != None:
+            title = title.text
+        else:
+            title = np.nan
+
         # 最寄り駅
-        station = job.find_all(class_="ul02")[1].find("span")
+        station = job.find_all(class_="ul02")[0].find("li")
         if station != None:
             station = station.text
-            station = re.search(r'.*駅', station).group()
+            station = re.search(r'.*駅', station)
+            if station != None:
+                station = station.group()
+                station = station[re.search(' ', station).end():]
+            else:
+                station = np.nan
         else:
             station = np.nan
 
 
         # 給与
+        pay_form = np.nan
         pay = job.find("div", class_="pt03").find_all("dd")[0].find("em")
         if pay != None:
             pay = pay.text
@@ -353,25 +351,20 @@ def acquisit_hw(df, soup, occupation):
                 pay = re.sub("万", "", pay)
                 pay = int(float(pay)*10000)
 
-            pay_qty = re.search("\d*$", pay).group()
+            pay_qty = re.search("\d*$", pay)
+            if pay_qty != None:
+                pay_qty = pay_qty.group()
+                if pay_qty <= 3000:
+                    pay_form = '時給'
+            else:
+                pay_qty = np.nan
                 
         else:
             pay_qty = np.nan
-
-        # 勤務時間
-        time = job.find(class_="pt03").find_all("dd")[1]
-        if time != None:
-            time = time.text.strip()
-            time = re.sub("\[[^\]]*\]", "", time)
-            start_time = time
-        else:
-            start_time = np.nan
         
-
-
         # 仮のデータフレームにまとめる
-        df_temp = pd.DataFrame({'企業名': corp, '最寄り駅': station, '職種': occupation, '給与形態': np.nan, 
-                                '給与金額': pay_qty, '勤務開始時間': start_time, '勤務終了時間': np.nan, '日払い': np.nan, 
+        df_temp = pd.DataFrame({'企業名': corp, 'タイトル': title, '最寄り駅': station, '職種': occupation, '給与形態': pay_form, 
+                                '給与金額': pay_qty, '勤務開始時間': np.nan, '勤務終了時間': np.nan, '日払い': np.nan, 
                                 '週払い': np.nan, '高収入': np.nan, '学生': np.nan, '高校生': np.nan, 
                                 'ミドル': np.nan, '主婦(夫)': np.nan, '未経験OK': np.nan, '交通費有': np.nan, 
                                 '年齢(10代)': np.nan, '年齢(20代)': np.nan, '年齢(30代)': np.nan, '年齢(40代)': np.nan, 
@@ -382,7 +375,6 @@ def acquisit_hw(df, soup, occupation):
         df = pd.concat([df, df_temp])
 
     return df
-===================================="""
 
 
 # 男女割合、仕事の仕方、職場の様子の評価値を算出する
