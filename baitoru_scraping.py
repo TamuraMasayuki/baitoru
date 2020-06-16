@@ -353,7 +353,7 @@ def acquisit_hw(df, soup, occupation):
 
             pay_qty = re.search("\d*$", pay)
             if pay_qty != None:
-                pay_qty = pay_qty.group()
+                pay_qty = int(pay_qty.group())
                 if pay_qty <= 3000:
                     pay_form = '時給'
             else:
