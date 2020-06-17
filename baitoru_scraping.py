@@ -77,8 +77,8 @@ def scraping():
                 with html_path.open() as f:
                     soup = BeautifulSoup(f, "lxml")
             except FileNotFoundError:
-                print(f'{occupation_name_ja}はありませんでした')
-                break
+                check[index].append([occupation_name_ja, 0, 0])
+                continue
 
  
             # 総アルバイト数と総ページ数は文字列なので整数型に変換する
@@ -114,7 +114,7 @@ def scraping():
                 else:
                     df = acquisit_hw(df, soup, occupation_name_ja)
 
-            check[index].append([citys[index], occupation_name_ja, len(df), total_job])
+            check[index].append([occupation_name_ja, len(df), total_job])
 
 
             # メモリを節約するため、職業ごとにcsvファイルに保存する
@@ -129,8 +129,8 @@ def scraping():
     print("検収確認（取得アルバイト数/掲載アルバイト数）")
     print("＿＿＿＿＿＿＿＿＿＿＿＿")
     for i in range(len(check)):
-        for j in range(len(check[i])):
-            print("{}{}：{}/{}".format(citys[i][j][0], citys[i][j][1], check[i][j][2], check[i][j][3]))
+        for j in range(len(check[0])):
+            print("{2}/{3}：{0}-{1}".format(citys[i], check[i][j][0], check[i][j][1], check[i][j][2]))
 
 
 
